@@ -11,7 +11,7 @@ public class GradeBook extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("gui/mainWindow.fxml"));
-        primaryStage.setTitle("Grade Book");
+        primaryStage.setTitle("Redovalnica");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
