@@ -1,0 +1,25 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'idea'
+}
+
+rootProject.version = '0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:28.1-jre'
+    testImplementation 'junit:junit:4.12'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+application {
+    mainClassName = 'dev.meglic.cs.gradebook.GradeBook'
+}
