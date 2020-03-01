@@ -1,6 +1,8 @@
 package dev.meglic.cs.gradebook.gui;
 
+import dev.meglic.cs.gradebook.config.Config;
 import dev.meglic.cs.gradebook.data.Database;
+
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -14,6 +16,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Controller {
 	
+	private Config conf;
+	private File database;
+	
 	private Database db;
 	private Statement stmt;
 	
@@ -22,13 +27,25 @@ public class Controller {
 	
 	@FXML
 	public void initialize () {
+		conf = Config.getInstance();
 		db = Database.getInstance();
-		// TODO: Check config for db location
-		// TODO: Check if db exists and handle
+		
+		// Get database location from config
+		// Handle if doesn't exist -> ask user via dialog
+		String file;
+		if ((file = conf.getConfig("database")) == null) {
+			database = new File(getDBLocationDialog());
+			conf.setConfig("database", database.getAbsolutePath());
+		} else {
+			database = new File(file);
+		}
+		
+		// Connect to database
+		dbConnect(database);
 	}
 	
 	private void dbConnect (File dbFile) {
-		if (db.createDatabase(dbFile)) {
+		if (db.connect(dbFile)) {
 			if ((stmt = db.getStatement()) == null) {
 				exit(1);
 			}
@@ -77,9 +94,10 @@ public class Controller {
 			DirectoryChooser directoryChooser = new DirectoryChooser();
 			directoryChooser.setTitle("Izberi lokacijo podatkovne baze");
 			File file = directoryChooser.showDialog(gp.getScene().getWindow());
-			if (file != null)
+			if (file != null) {
 				dirSet.set(true);
-			tfPath.setText(file.getAbsolutePath() + "\\" + tfFile.getText().trim() + ".db");
+				tfPath.setText(file.getAbsolutePath() + "\\" + tfFile.getText().trim() + ".db");
+			}
 		});
 		gp.add(btSearch, 2, 0);
 		
