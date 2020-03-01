@@ -4,6 +4,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,14 +21,22 @@ public final class Config {
 	private Logger logger;
 	
 	private Config () {
+		config = new JSONObject();
+		logger = Logger.getLogger(this.getClass().getName());
+		
 		if (System.getProperty("os.name").startsWith("Windows")) {
 			file = System.getenv("APPDATA") + "\\Meglic\\Gradebook\\config.json";
+			try {
+				File f = new File(file);
+				f.getParentFile().mkdirs();
+				f.createNewFile();
+			} catch (IOException e) {
+				logger.log(Level.WARNING, e.getMessage());
+			}
 		} else {
 			file = null;
 		}
 		
-		config = new JSONObject();
-		logger = Logger.getLogger(this.getClass().getName());
 		loadFromFile();
 	}
 	
