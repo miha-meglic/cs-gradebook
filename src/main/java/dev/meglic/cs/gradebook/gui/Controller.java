@@ -3,6 +3,7 @@ package dev.meglic.cs.gradebook.gui;
 import dev.meglic.cs.gradebook.config.Config;
 import dev.meglic.cs.gradebook.data.Database;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -11,6 +12,8 @@ import javafx.stage.DirectoryChooser;
 
 import java.io.File;
 import java.sql.Statement;
+import javafx.util.Pair;
+
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,13 +34,46 @@ public class Controller {
 		db = Database.getInstance();
 		
 		// Get database location from config
-		// Handle if doesn't exist -> ask user via dialog
-		String file;
-		if ((file = conf.getConfig("database")) == null) {
-			database = new File(getDBLocationDialog());
-			conf.setConfig("database", database.getAbsolutePath());
-		} else {
+		String file = conf.getConfig("database");
+		
+		if (file != null) {
 			database = new File(file);
+		}
+		
+		// Handle if no record of database location -> ask user via dialog
+		if (file == null) {
+			
+			// Get dialog result
+			Pair<String, Boolean> dialogResult = getDBLocationDialog();
+			
+			// If result null, terminate execution and alert the user
+			if (dialogResult == null) {
+				Alert alert = new Alert(Alert.AlertType.ERROR, "", ButtonType.OK);
+				alert.setHeaderText("Nekaj se je zalomilo :/");
+				alert.setContentText("Neutemeljena lokacija!\nProgram se bo zaustavil...");
+				alert.showAndWait();
+				
+				System.exit(1);
+			}
+			
+			database = new File(dialogResult.getKey());
+			conf.setConfig("database", database.getAbsolutePath());
+			
+			// If user checked "new database" option, set up the tables
+			if (dialogResult.getValue()) {
+				db.createDatabase(database);
+			}
+		}
+		
+		// Handle if configure database file doesn't exist
+		if (!database.exists()) {
+			Alert alert = new Alert(Alert.AlertType.INFORMATION, "", ButtonType.OK);
+			alert.setHeaderText("Baza se ponovno postavlja");
+			alert.setContentText("Na konfigurirani lokaciji baza (še) ne obstaja,\nzato jo bomo ponovno postavili.");
+			alert.showAndWait();
+			
+			// Create database
+			db.createDatabase(database);
 		}
 		
 		// Connect to database
@@ -59,8 +95,8 @@ public class Controller {
 		System.exit(x);
 	}
 	
-	private String getDBLocationDialog () {
-		Dialog<String> dialog = new Dialog<>();
+	private Pair<String, Boolean> getDBLocationDialog () {
+		Dialog<Pair<String, Boolean>> dialog = new Dialog<>();
 		dialog.setTitle("Lokacija podatkovne baze");
 		dialog.setHeaderText("Doloèi lokacijo podatkovne baze");
 		
@@ -118,6 +154,7 @@ public class Controller {
 		});
 		gp.add(tfFile, 1, 1);
 		
+		cbNew.setSelected(true);
 		gp.add(cbNew, 1, 2);
 		// GridPane END
 		
@@ -125,15 +162,15 @@ public class Controller {
 		
 		dialog.setResultConverter(button -> {
 			if (button == confirm && dirSet.get() && fileSet.get()) {
-				String path = tfFile.getText().trim();
+				String path = tfPath.getText().trim();
 				if (!path.equals("")) {
-					return path;
+					return new Pair<>(path, cbNew.isSelected());
 				}
 			}
 			return null;
 		});
 		
-		Optional<String> result = dialog.showAndWait();
+		Optional<Pair<String, Boolean>> result = dialog.showAndWait();
 		return result.orElse(null);
 	}
 }
