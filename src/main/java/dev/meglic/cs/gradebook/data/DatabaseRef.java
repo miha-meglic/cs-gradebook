@@ -2,37 +2,34 @@ package dev.meglic.cs.gradebook.data;
 
 final class DatabaseRef {
 	
-	static final String CTABLE_PREDMETI = "CREATE TABLE Predmeti (" +
-			"id_predmeta INT not null," +
-			"ime VARCHAR(25) not null," +
-			"kratica VARCHAR(6) not null," +
-			"PRIMARY KEY (id_predmeta)" +
+	static final String CTABLE_PREDMETI = "CREATE TABLE Predmeti (\n" +
+			"\tid_predmeta INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
+			"\time VARCHAR(25) not null,\n" +
+			"\tkratica VARCHAR(6) not null\n" +
 			");";
 	
-	static final String CTABLE_OCENA = "CREATE TABLE Ocena (" +
-			"id_ocene INT not null," +
-			"ocena INT not null," +
-			"ime VARCHAR(15) not null," +
-			"PRIMARY KEY (id_ocene)" +
+	static final String CTABLE_OCENA = "CREATE TABLE Ocena (\n" +
+			"\tid_ocene INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
+			"\tocena INT not null,\n" +
+			"\time VARCHAR(15) not null\n" +
 			");";
 	
-	static final String CTABLE_TIPOCENE = "CREATE TABLE TipOcene (" +
-			"id_tipa INT not null," +
-			"ime VARCHAR(15) not null," +
-			"PRIMARY KEY (id_tipa)" +
+	static final String CTABLE_TIPOCENE = "CREATE TABLE TipOcene (\n" +
+			"\tid_tipa INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
+			"\time VARCHAR(15) not null,\n" +
+			"\tbarva VARCHAR(7)\n" +
 			");";
 	
-	static final String CTABLE_OCENE = "CREATE TABLE Ocene (" +
-			"id_vnosa INT not null," +
-			"id_predmeta INT not null," +
-			"id_ocene INT not null," +
-			"id_tipa INT not null," +
-			"polletje INT not null," +
-			"opombe VARCHAR(255)," +
-			"CHECK (polletje > 0 AND polletje <= 2)," +
-			"PRIMARY KEY (id_vnosa)," +
-			"FOREIGN KEY (id_predmeta) REFERENCES Predmeti(id_predmeta)," +
-			"FOREIGN KEY (id_ocene) REFERENCES Ocena(id_ocene)," +
-			"FOREIGN KEY (id_tipa) REFERENCES TipOcene(id_tipa)" +
+	static final String CTABLE_OCENE = "CREATE TABLE Ocene (\n" +
+			"\tid_vnosa INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
+			"\tid_predmeta INT not null,\n" +
+			"\tid_ocene INT not null,\n" +
+			"\tid_tipa INT not null,\n" +
+			"\tpolletje INT not null,\n" +
+			"\topombe VARCHAR(255),\n\n" +
+			"\tCHECK (polletje > 0 AND polletje <= 2),\n\n" +
+			"\tFOREIGN KEY (id_predmeta) REFERENCES Predmeti(id_predmeta),\n" +
+			"\tFOREIGN KEY (id_ocene) REFERENCES Ocena(id_ocene),\n" +
+			"\tFOREIGN KEY (id_tipa) REFERENCES TipOcene(id_tipa)\n" +
 			");";
 }
