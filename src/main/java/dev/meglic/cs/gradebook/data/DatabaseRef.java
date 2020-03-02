@@ -2,7 +2,7 @@ package dev.meglic.cs.gradebook.data;
 
 final class DatabaseRef {
 	
-	static final String CTABLE_PREDMETI = "CREATE TABLE Predmeti (\n" +
+	static final String CTABLE_PREDMETI = "CREATE TABLE Predmet (\n" +
 			"\tid_predmeta INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
 			"\time VARCHAR(25) not null,\n" +
 			"\tkratica VARCHAR(6) not null\n" +

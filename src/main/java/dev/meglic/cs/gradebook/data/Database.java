@@ -1,10 +1,7 @@
 package dev.meglic.cs.gradebook.data;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,6 +60,23 @@ public final class Database {
 		}
 		
 		return stmt;
+	}
+	
+	// GET RESULT SET FOR SPECIFIC CONDITION
+	public ResultSet getEntry (String table, String condition) {
+		if (con != null) {
+			if (getStatement() != null) {
+				String querry = String.format("SELECT * FROM %s WHERE %s", table, condition);
+				
+				try {
+					return stmt.executeQuery(querry);
+				} catch (SQLException e) {
+					logger.log(Level.WARNING, e.getMessage());
+				}
+			}
+		}
+		
+		return null;
 	}
 	
 	// CLOSE ALL CONNECTIONS
