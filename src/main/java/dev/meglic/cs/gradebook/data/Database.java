@@ -10,7 +10,6 @@ public final class Database {
 	private static Database instance;
 	
 	private Connection con;
-	private Statement stmt;
 	
 	private Logger logger;
 	
@@ -43,49 +42,15 @@ public final class Database {
 		}
 	}
 	
-	// GET STATEMENT
-	// ! if unsuccessful, return null
-	// Creates statement if non-existent
-	public Statement getStatement () {
-		if (con == null)
-			return null;
-		
-		if (stmt == null) {
-			try {
-				stmt = con.createStatement();
-			} catch (SQLException e) {
-				logger.log(Level.SEVERE, e.getMessage());
-				return null;
-			}
-		}
-		
-		return stmt;
+	// GET CONNECTION
+	// Package-private
+	Connection getCon () {
+		return con;
 	}
 	
-	// GET RESULT SET FOR SPECIFIC CONDITION
-	public ResultSet getEntry (String table, String condition) {
-		if (con != null) {
-			if (getStatement() != null) {
-				String querry = String.format("SELECT * FROM %s WHERE %s", table, condition);
-				
-				try {
-					return stmt.executeQuery(querry);
-				} catch (SQLException e) {
-					logger.log(Level.WARNING, e.getMessage());
-				}
-			}
-		}
-		
-		return null;
-	}
-	
-	// CLOSE ALL CONNECTIONS
-	public void closeAll () {
+	// CLOSE CONNECTION
+	public void close () {
 		try {
-			if (stmt != null) {
-				stmt.close();
-				stmt = null;
-			}
 			if (con != null) {
 				con.close();
 				con = null;
@@ -117,16 +82,16 @@ public final class Database {
 		if (!connect(file))
 			return false;
 		
-		// Create statement
-		if (getStatement() == null)
-			return false;
-		
 		// Create tables
 		try {
-			stmt.execute(DatabaseRef.CTABLE_PREDMETI);
-			stmt.execute(DatabaseRef.CTABLE_OCENA);
-			stmt.execute(DatabaseRef.CTABLE_TIPOCENE);
-			stmt.execute(DatabaseRef.CTABLE_OCENE);
+			Statement stmt = con.createStatement();
+			
+			stmt.execute(DatabaseRef.CTABLE_SUBJECT);
+			stmt.execute(DatabaseRef.CTABLE_GRADE);
+			stmt.execute(DatabaseRef.CTABLE_GRADETYPE);
+			stmt.execute(DatabaseRef.CTABLE_ENTRIES);
+			
+			stmt.close();
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, e.getMessage());
 			return false;

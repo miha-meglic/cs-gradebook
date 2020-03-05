@@ -9,21 +9,21 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
-
-import java.io.File;
-import java.sql.Statement;
 import javafx.util.Pair;
 
+import java.io.File;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Controller {
 	
 	private Config conf;
 	private File database;
+	private Logger logger;
 	
 	private Database db;
-	private Statement stmt;
 	
 	@FXML
 	private GridPane gradebook;
@@ -32,6 +32,8 @@ public class Controller {
 	public void initialize () {
 		conf = Config.getInstance();
 		db = Database.getInstance();
+		
+		logger = Logger.getLogger(this.getClass().getName());
 		
 		// Get database location from config
 		String file = conf.getConfig("database");
@@ -69,7 +71,7 @@ public class Controller {
 		if (!database.exists()) {
 			Alert alert = new Alert(Alert.AlertType.INFORMATION, "", ButtonType.OK);
 			alert.setHeaderText("Baza se ponovno postavlja");
-			alert.setContentText("Na konfigurirani lokaciji baza (še) ne obstaja,\nzato jo bomo ponovno postavili.");
+			alert.setContentText("Na konfigurirani lokaciji baza (ï¿½e) ne obstaja,\nzato jo bomo ponovno postavili.");
 			alert.showAndWait();
 			
 			// Create database
@@ -81,30 +83,26 @@ public class Controller {
 	}
 	
 	private void dbConnect (File dbFile) {
-		if (db.connect(dbFile)) {
-			if ((stmt = db.getStatement()) == null) {
-				exit(1);
-			}
-		} else {
+		if (!db.connect(dbFile)) {
 			exit(1);
 		}
 	}
 	
 	private void exit (int x) {
-		db.closeAll();
+		db.close();
 		System.exit(x);
 	}
 	
 	private Pair<String, Boolean> getDBLocationDialog () {
 		Dialog<Pair<String, Boolean>> dialog = new Dialog<>();
 		dialog.setTitle("Lokacija podatkovne baze");
-		dialog.setHeaderText("Doloèi lokacijo podatkovne baze");
+		dialog.setHeaderText("Doloï¿½i lokacijo podatkovne baze");
 		
 		// TODO: Add icon
 		// dialog.setGraphic(new ImageView(this.getClass().getResource("icon.png").toString()));
 		
 		ButtonType confirm = new ButtonType("Izberi", ButtonBar.ButtonData.OK_DONE);
-		ButtonType cancel = new ButtonType("Preklièi", ButtonBar.ButtonData.CANCEL_CLOSE);
+		ButtonType cancel = new ButtonType("Prekliï¿½i", ButtonBar.ButtonData.CANCEL_CLOSE);
 		dialog.getDialogPane().getButtonTypes().addAll(confirm, cancel);
 		
 		AtomicBoolean dirSet = new AtomicBoolean(false);
@@ -121,7 +119,7 @@ public class Controller {
 		TextField tfPath = new TextField();
 		Button btSearch = new Button("Brskaj...");
 		TextField tfFile = new TextField();
-		CheckBox cbNew = new CheckBox("Ustvari novo bazo (pobriše obstojeèo datoteko)");
+		CheckBox cbNew = new CheckBox("Ustvari novo bazo (pobriï¿½e obstojeï¿½o datoteko)");
 		
 		tfPath.setEditable(false);
 		gp.add(tfPath, 1, 0);

@@ -2,25 +2,25 @@ package dev.meglic.cs.gradebook.data;
 
 final class DatabaseRef {
 	
-	static final String CTABLE_PREDMETI = "CREATE TABLE Predmet (\n" +
+	static final String CTABLE_SUBJECT = "CREATE TABLE Predmet (\n" +
 			"\tid_predmeta INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
 			"\time VARCHAR(25) not null,\n" +
 			"\tkratica VARCHAR(6) not null\n" +
 			");";
 	
-	static final String CTABLE_OCENA = "CREATE TABLE Ocena (\n" +
+	static final String CTABLE_GRADE = "CREATE TABLE Ocena (\n" +
 			"\tid_ocene INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
 			"\tocena INT not null,\n" +
 			"\time VARCHAR(15) not null\n" +
 			");";
 	
-	static final String CTABLE_TIPOCENE = "CREATE TABLE TipOcene (\n" +
+	static final String CTABLE_GRADETYPE = "CREATE TABLE TipOcene (\n" +
 			"\tid_tipa INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
 			"\time VARCHAR(15) not null,\n" +
 			"\tbarva VARCHAR(7)\n" +
 			");";
 	
-	static final String CTABLE_OCENE = "CREATE TABLE Ocene (\n" +
+	static final String CTABLE_ENTRIES = "CREATE TABLE Ocene (\n" +
 			"\tid_vnosa INTEGER PRIMARY KEY AUTOINCREMENT not null,\n" +
 			"\tid_predmeta INT not null,\n" +
 			"\tid_ocene INT not null,\n" +

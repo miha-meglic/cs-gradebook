@@ -1,6 +1,7 @@
 # Ignore IntelliJ files
 out
 .idea
+.ideaDataSources
 *.iml
 *.ipr
 *.iws
