@@ -109,6 +109,8 @@ public final class Data {
 	public HashMap<Subject, ArrayList<Entry>> getEntriesBySubject () {
 		HashMap<Subject, ArrayList<Entry>> ret = new HashMap<>();
 		
+		subjects.values().forEach(v -> ret.put(v, new ArrayList<>()));
+		
 		// Populate HashMap by iterating through all entries
 		entries.values().forEach(val -> {
 			Subject sub = val.getSubject();
@@ -134,7 +136,7 @@ public final class Data {
 	
 	// Adds entry to database if id -1
 	public boolean addEntry (Entry entry) {
-		if (entry.getId() == -1) {
+		if (entry.id == -1) {
 			// Add item to database
 			try (Statement stmt = Database.getInstance().getCon().createStatement()) {
 				String query = String.format(DatabaseRef.ADD_ENTRY, entry.subject.id, entry.grade.id, entry.gradeType.id, entry.semester, entry.notes);
@@ -150,6 +152,21 @@ public final class Data {
 					entries.put(entry.id, entry);
 					return true;
 				}
+			} catch (SQLException e) {
+				logger.log(Level.WARNING, e.getMessage());
+			}
+		}
+		return false;
+	}
+	
+	public boolean removeEntry (Entry entry) {
+		if (entries.getOrDefault(entry.id, null) != null) {
+			// Delete item
+			entries.remove(entry.id);
+			// Delete from database
+			try (Statement stmt = Database.getInstance().getCon().createStatement()) {
+				String query = String.format(DatabaseRef.DELETE_ENTRY, entry.id);
+				stmt.execute(query);
 			} catch (SQLException e) {
 				logger.log(Level.WARNING, e.getMessage());
 			}

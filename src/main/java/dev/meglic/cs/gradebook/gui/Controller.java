@@ -9,12 +9,19 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.util.Pair;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 public class Controller {
@@ -84,6 +91,9 @@ public class Controller {
 		
 		// Get Data instance
 		data = db.getDataInstance();
+		
+		// Display data
+		updateTable();
 	}
 	
 	private void dbConnect (File dbFile) {
@@ -95,6 +105,71 @@ public class Controller {
 	private void exit (int x) {
 		db.close();
 		System.exit(x);
+	}
+	
+	private void updateTable () {
+		HashMap<Data.Subject, ArrayList<Data.Entry>> tData = data.getEntriesBySubject();
+		
+		// Clear children (excluding headers)
+		gradebook.getChildren().remove(4, gradebook.getChildren().size());
+		
+		// Ensure correct spacing
+		try {
+			gradebook.getRowConstraints().get(tData.keySet().size()).getMaxHeight();
+		} catch (IndexOutOfBoundsException e) {
+			for (int i = 0; i < tData.keySet().size(); i++) {
+				gradebook.getRowConstraints().add(new RowConstraints(20.0, 30.0, 30.0));
+			}
+		}
+		
+		// Add grades
+		tData.forEach((sub, arr) -> {
+			Label subject = new Label(sub.toString()); // Subject title
+			subject.setFont(new Font("System", 16));
+			HBox fSemester = new HBox(2);
+			HBox sSemester = new HBox(2);
+			
+			AtomicReference<Double> average = new AtomicReference<>(0.0);
+			
+			// Loop through entries for subject
+			arr.forEach((ent) -> {
+				Hyperlink grade = new Hyperlink(Integer.toString(ent.getGrade().getGrade())); // Create hyperlink
+				grade.setFont(new Font("System Bold", 16)); // Set font and size
+				grade.setTextFill(Color.web(ent.getGradeType().getColor())); // Set color
+				
+				average.updateAndGet(v -> (double) (v + ent.getGrade().getGrade()));
+				
+				// OnClick open edit dialog
+				grade.setOnAction(event -> {
+					Dialog<Data.Entry> dialog = gradeEntryDialog(ent);
+					dialog.setTitle("Uredi oceno");
+					
+					// Add delete button
+					dialog.getDialogPane().getButtonTypes().add(new ButtonType("Izbriši", ButtonBar.ButtonData.OTHER));
+					
+					dialog.showAndWait();
+					
+					// Update table
+					updateTable();
+				});
+				
+				// Add hyperlink to correct HBox
+				if (ent.getSemester() == 1)
+					fSemester.getChildren().add(grade);
+				else
+					sSemester.getChildren().add(grade);
+			});
+			
+			Label avg = new Label(String.format("%.02f", average.get() / arr.size()));
+			avg.setFont(new Font("System Bold", 16));
+			
+			// Add all items into respective grid spaces
+			int row = sub.getId();
+			gradebook.add(subject, 0, row);
+			gradebook.add(fSemester, 1, row);
+			gradebook.add(sSemester, 2, row);
+			gradebook.add(avg, 3, row);
+		});
 	}
 	
 	private Pair<String, Boolean> getDBLocationDialog () {
@@ -213,7 +288,7 @@ public class Controller {
 		
 		ddSemester.getItems().addAll("Prvi (I.)", "Drugi (II.)");
 		if (existing != null)
-			ddSemester.getSelectionModel().select(existing.getSemester());
+			ddSemester.getSelectionModel().select(existing.getSemester() - 1);
 		gp.add(ddSemester, 1, 3);
 		
 		taNotes.prefColumnCountProperty().setValue(25);
@@ -226,9 +301,11 @@ public class Controller {
 		dialog.getDialogPane().setContent(gp);
 		
 		dialog.setResultConverter(button -> {
+			// Field checks
 			if (button == ButtonType.OK && !ddSubject.getSelectionModel().isEmpty() &&
 					!ddGrade.getSelectionModel().isEmpty() && !ddGradeType.getSelectionModel().isEmpty() &&
 					!ddSemester.getSelectionModel().isEmpty()) {
+				// Get data
 				Data.Subject subject = ddSubject.getSelectionModel().getSelectedItem();
 				Data.Grade grade = ddGrade.getSelectionModel().getSelectedItem();
 				Data.GradeType gradeType = ddGradeType.getSelectionModel().getSelectedItem();
@@ -236,15 +313,24 @@ public class Controller {
 				String notes = taNotes.getText().trim();
 				
 				if (existing == null) {
+					// New entry with id -1
 					return data.createNewEntry(subject, grade, gradeType, semester, notes);
 				} else {
+					// Update old entry
 					existing.setSubject(subject);
 					existing.setGrade(grade);
 					existing.setGradeType(gradeType);
 					existing.setSemester(semester);
 					existing.setNotes(notes);
+					return existing;
 				}
 			}
+			
+			// Delete button handle
+			if (button.getButtonData() == ButtonBar.ButtonData.OTHER && existing != null) {
+				data.removeEntry(existing);
+			}
+			
 			return null;
 		});
 		
@@ -253,11 +339,16 @@ public class Controller {
 	
 	@FXML
 	public void handleNewGrade (ActionEvent actionEvent) {
+		// Open dialog
 		Dialog<Data.Entry> dialog = gradeEntryDialog(null);
 		dialog.setTitle("Dodaj oceno");
 		
 		Optional<Data.Entry> newEntry = dialog.showAndWait();
 		
+		// Add entry
 		newEntry.ifPresent(entry -> data.addEntry(entry));
+		
+		// Update table
+		updateTable();
 	}
 }

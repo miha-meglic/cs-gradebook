@@ -8,7 +8,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 <BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-            prefHeight="400.0" prefWidth="600.0" fx:controller="dev.meglic.cs.gradebook.gui.Controller">
+            prefHeight="500.0" prefWidth="800.0" fx:controller="dev.meglic.cs.gradebook.gui.Controller">
 
     <top>
         <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
@@ -41,28 +41,28 @@
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0"/>
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="30.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                     </rowConstraints>
 
                     <children>
                         <Label text="Predmet" GridPane.columnIndex="0">
                             <font>
-                                <Font name="System Bold" size="16.0"/>
+                                <Font name="System Bold" size="18.0"/>
                             </font>
                         </Label>
                         <Label text="I. Polletje" GridPane.columnIndex="1">
                             <font>
-                                <Font name="System Bold" size="14.0"/>
+                                <Font name="System Bold" size="18.0"/>
                             </font>
                         </Label>
                         <Label text="II. Polletje" GridPane.columnIndex="2">
                             <font>
-                                <Font name="System Bold" size="14.0"/>
+                                <Font name="System Bold" size="18.0"/>
                             </font>
                         </Label>
                         <Label text="Povprečje" GridPane.columnIndex="3">
                             <font>
-                                <Font name="System Bold" size="14.0"/>
+                                <Font name="System Bold" size="18.0"/>
                             </font>
                         </Label>
                     </children>
