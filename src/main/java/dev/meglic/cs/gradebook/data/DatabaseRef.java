@@ -32,4 +32,35 @@ final class DatabaseRef {
 			"\tFOREIGN KEY (id_ocene) REFERENCES Ocena(id_ocene),\n" +
 			"\tFOREIGN KEY (id_tipa) REFERENCES TipOcene(id_tipa)\n" +
 			");";
+	
+	static final String QTABLE_SUBJECT = "SELECT * FROM Predmet";
+	static final String SUBJECT_ID = "id_predmeta";
+	static final String SUBJECT_NAME = "ime";
+	static final String SUBJECT_ABBR = "kratica";
+	
+	static final String UPDATE_SUBJECT = "UPDATE Predmet SET ime = %s, kratica = %s WHERE id_predmeta = %d";
+	
+	static final String QTABLE_GRADE = "SELECT * FROM Ocena";
+	static final String GRADE_ID = "id_ocene";
+	static final String GRADE_GRADE = "ocena";
+	static final String GRADE_NAME = "ime";
+	
+	static final String UPDATE_GRADE = "UPDATE Ocena SET ocena = %d, ime = %s WHERE id_ocene = %d";
+	
+	static final String QTABLE_GRADETYPE = "SELECT * FROM TipOcene";
+	static final String GRADETYPE_ID = "id_tipa";
+	static final String GRADETYPE_NAME = "ime";
+	static final String GRADETYPE_COLOR = "barva";
+	
+	static final String UPDATE_GRADETYPE = "UPDATE TipOcene SET ime = %s, barva = %s WHERE id_tipa = %d";
+	
+	static final String QTABLE_ENTRIES = "SELECT * FROM Ocene";
+	static final String ENTRIES_ID = "id_vnosa";
+	static final String ENTRIES_SUBJECT = "id_predmeta";
+	static final String ENTRIES_GRADE = "id_ocene";
+	static final String ENTRIES_GRADETYPE = "id_tipa";
+	static final String ENTRIES_SEMESTER = "polletje";
+	static final String ENTRIES_NOTES = "opombe";
+	
+	static final String UPDATE_ENTRY = "UPDATE Ocene SET id_predmeta = %d, id_ocene = %d, id_tipa = %d, polletje = %d, opombe = %s WHERE id_vnosa = %d";
 }
