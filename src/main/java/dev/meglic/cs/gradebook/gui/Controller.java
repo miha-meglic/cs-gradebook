@@ -1,6 +1,7 @@
 package dev.meglic.cs.gradebook.gui;
 
 import dev.meglic.cs.gradebook.config.Config;
+import dev.meglic.cs.gradebook.data.Data;
 import dev.meglic.cs.gradebook.data.Database;
 
 import javafx.event.ActionEvent;
@@ -14,7 +15,6 @@ import javafx.util.Pair;
 import java.io.File;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Controller {
@@ -24,6 +24,7 @@ public class Controller {
 	private Logger logger;
 	
 	private Database db;
+	private Data data;
 	
 	@FXML
 	private GridPane gradebook;
@@ -71,7 +72,7 @@ public class Controller {
 		if (!database.exists()) {
 			Alert alert = new Alert(Alert.AlertType.INFORMATION, "", ButtonType.OK);
 			alert.setHeaderText("Baza se ponovno postavlja");
-			alert.setContentText("Na konfigurirani lokaciji baza (ï¿½e) ne obstaja,\nzato jo bomo ponovno postavili.");
+			alert.setContentText("Na konfigurirani lokaciji baza (še) ne obstaja,\nzato jo bomo ponovno postavili.");
 			alert.showAndWait();
 			
 			// Create database
@@ -80,6 +81,9 @@ public class Controller {
 		
 		// Connect to database
 		dbConnect(database);
+		
+		// Get Data instance
+		data = db.getDataInstance();
 	}
 	
 	private void dbConnect (File dbFile) {
@@ -96,14 +100,12 @@ public class Controller {
 	private Pair<String, Boolean> getDBLocationDialog () {
 		Dialog<Pair<String, Boolean>> dialog = new Dialog<>();
 		dialog.setTitle("Lokacija podatkovne baze");
-		dialog.setHeaderText("Doloï¿½i lokacijo podatkovne baze");
+		dialog.setHeaderText("Doloèi lokacijo podatkovne baze");
 		
 		// TODO: Add icon
 		// dialog.setGraphic(new ImageView(this.getClass().getResource("icon.png").toString()));
 		
-		ButtonType confirm = new ButtonType("Izberi", ButtonBar.ButtonData.OK_DONE);
-		ButtonType cancel = new ButtonType("Prekliï¿½i", ButtonBar.ButtonData.CANCEL_CLOSE);
-		dialog.getDialogPane().getButtonTypes().addAll(confirm, cancel);
+		dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 		
 		AtomicBoolean dirSet = new AtomicBoolean(false);
 		AtomicBoolean fileSet = new AtomicBoolean(false);
@@ -119,7 +121,7 @@ public class Controller {
 		TextField tfPath = new TextField();
 		Button btSearch = new Button("Brskaj...");
 		TextField tfFile = new TextField();
-		CheckBox cbNew = new CheckBox("Ustvari novo bazo (pobriï¿½e obstojeï¿½o datoteko)");
+		CheckBox cbNew = new CheckBox("Ustvari novo bazo (pobriše obstojeèo datoteko)");
 		
 		tfPath.setEditable(false);
 		gp.add(tfPath, 1, 0);
@@ -159,7 +161,7 @@ public class Controller {
 		dialog.getDialogPane().setContent(gp);
 		
 		dialog.setResultConverter(button -> {
-			if (button == confirm && dirSet.get() && fileSet.get()) {
+			if (button == ButtonType.OK && dirSet.get() && fileSet.get()) {
 				String path = tfPath.getText().trim();
 				if (!path.equals("")) {
 					return new Pair<>(path, cbNew.isSelected());
@@ -170,5 +172,92 @@ public class Controller {
 		
 		Optional<Pair<String, Boolean>> result = dialog.showAndWait();
 		return result.orElse(null);
+	}
+	
+	private Dialog<Data.Entry> gradeEntryDialog (Data.Entry existing) {
+		Dialog<Data.Entry> dialog = new Dialog<>();
+		
+		dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+		
+		// GridPane START
+		GridPane gp = new GridPane();
+		gp.setVgap(10);
+		gp.setHgap(10);
+		gp.setPadding(new Insets(20, 20, 10, 20));
+		
+		gp.add(new Label("Predmet"), 0, 0);
+		gp.add(new Label("Ocena"), 0, 1);
+		gp.add(new Label("Semester"), 0, 3);
+		gp.add(new Label("Opombe:"), 0, 4);
+		
+		ComboBox<Data.Subject> ddSubject = new ComboBox<>();
+		ComboBox<Data.Grade> ddGrade = new ComboBox<>();
+		ComboBox<Data.GradeType> ddGradeType = new ComboBox<>();
+		ComboBox<String> ddSemester = new ComboBox<>();
+		TextArea taNotes = new TextArea();
+		
+		ddSubject.getItems().setAll(data.getSubjects().values());
+		if (existing != null)
+			ddSubject.getSelectionModel().select(existing.getSubject());
+		gp.add(ddSubject, 1, 0);
+		
+		ddGrade.getItems().addAll(data.getGrades().values());
+		if (existing != null)
+			ddGrade.getSelectionModel().select(existing.getGrade());
+		gp.add(ddGrade, 1, 1);
+		
+		ddGradeType.getItems().setAll(data.getGradeTypes().values());
+		if (existing != null)
+			ddGradeType.getSelectionModel().select(existing.getGradeType());
+		gp.add(ddGradeType, 1, 2);
+		
+		ddSemester.getItems().addAll("Prvi (I.)", "Drugi (II.)");
+		if (existing != null)
+			ddSemester.getSelectionModel().select(existing.getSemester());
+		gp.add(ddSemester, 1, 3);
+		
+		taNotes.prefColumnCountProperty().setValue(25);
+		taNotes.prefRowCountProperty().setValue(3);
+		if (existing != null)
+			taNotes.setText(existing.getNotes());
+		gp.add(taNotes, 0, 5, 2, 1);
+		// GridPane END
+		
+		dialog.getDialogPane().setContent(gp);
+		
+		dialog.setResultConverter(button -> {
+			if (button == ButtonType.OK && !ddSubject.getSelectionModel().isEmpty() &&
+					!ddGrade.getSelectionModel().isEmpty() && !ddGradeType.getSelectionModel().isEmpty() &&
+					!ddSemester.getSelectionModel().isEmpty()) {
+				Data.Subject subject = ddSubject.getSelectionModel().getSelectedItem();
+				Data.Grade grade = ddGrade.getSelectionModel().getSelectedItem();
+				Data.GradeType gradeType = ddGradeType.getSelectionModel().getSelectedItem();
+				int semester = ddSemester.getSelectionModel().getSelectedIndex() + 1; // (Index + 1) gives either a 1 or a 2
+				String notes = taNotes.getText().trim();
+				
+				if (existing == null) {
+					return data.createNewEntry(subject, grade, gradeType, semester, notes);
+				} else {
+					existing.setSubject(subject);
+					existing.setGrade(grade);
+					existing.setGradeType(gradeType);
+					existing.setSemester(semester);
+					existing.setNotes(notes);
+				}
+			}
+			return null;
+		});
+		
+		return dialog;
+	}
+	
+	@FXML
+	public void handleNewGrade (ActionEvent actionEvent) {
+		Dialog<Data.Entry> dialog = gradeEntryDialog(null);
+		dialog.setTitle("Dodaj oceno");
+		
+		Optional<Data.Entry> newEntry = dialog.showAndWait();
+		
+		newEntry.ifPresent(entry -> data.addEntry(entry));
 	}
 }

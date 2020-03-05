@@ -48,6 +48,12 @@ public final class Database {
 		return con;
 	}
 	
+	public Data getDataInstance() {
+		if (con != null)
+			return Data.getInstance();
+		return null;
+	}
+	
 	// CLOSE CONNECTION
 	public void close () {
 		try {

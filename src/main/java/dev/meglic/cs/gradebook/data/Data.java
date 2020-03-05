@@ -8,7 +8,10 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Data {
+public final class Data {
+	
+	private static Data instance;
+	
 	private HashMap<Integer, Entry> entries;
 	private HashMap<Integer, Subject> subjects;
 	private HashMap<Integer, Grade> grades;
@@ -16,7 +19,7 @@ public class Data {
 	
 	private Logger logger;
 	
-	public Data () {
+	private Data () {
 		logger = Logger.getLogger(this.getClass().getName());
 		
 		entries = new HashMap<>();
@@ -25,6 +28,12 @@ public class Data {
 		gradeTypes = new HashMap<>();
 		
 		loadData();
+	}
+	
+	static Data getInstance() {
+		if (instance == null)
+			instance = new Data();
+		return instance;
 	}
 	
 	private void loadData () {
@@ -126,8 +135,24 @@ public class Data {
 	// Adds entry to database if id -1
 	public boolean addEntry (Entry entry) {
 		if (entry.getId() == -1) {
-			// TODO: Implement
-			return true;
+			// Add item to database
+			try (Statement stmt = Database.getInstance().getCon().createStatement()) {
+				String query = String.format(DatabaseRef.ADD_ENTRY, entry.subject.id, entry.grade.id, entry.gradeType.id, entry.semester, entry.notes);
+				stmt.execute(query);
+			} catch (SQLException e) {
+				logger.log(Level.WARNING, e.getMessage());
+			}
+			// Get item ID
+			try (Statement stmt = Database.getInstance().getCon().createStatement();
+				 ResultSet rs = stmt.executeQuery(DatabaseRef.LASTID_ENTRY)) {
+				if (rs.next()) {
+					entry.id = rs.getInt(DatabaseRef.ENTRIES_ID);
+					entries.put(entry.id, entry);
+					return true;
+				}
+			} catch (SQLException e) {
+				logger.log(Level.WARNING, e.getMessage());
+			}
 		}
 		return false;
 	}
